@@ -1,0 +1,116 @@
+---
+title: 'Insomnia and Activities Before Bedtime: A Factorial Design Study'
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+author: "Zhenyi Yang"
+date: "18/05/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# place your setup codes here
+# e.g., loading library, display setup, etc.
+# library(kableExtra) # useful for formatting pdf tables
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+# Description
+
+I will collect my hour of deep sleep each night with same total hour of sleep while varing hot milk and reading at two different level. The binary level of milk variable would be I either drink(+1) or not drink hot milk(-1) one hour before I go to bed; varing reading by either read in bed(+1) or not read(-1) in bed and bath factor will be hot bath(+1) or no bath (-1). Therefore; all three factors have 2 levels, it is a 2^3^ factorial design I will perfrom 2 repetition of this experiments randomize the date of my sleep record for sometimes unexpected issues might happen that affects quality of sleep, for example, presurel like close to exams and due dates; so there are 16 observations in total. Factors are as below:
+
+
+|Factors|Level 1|level 2|
+------|:-------------:|:-------------:|:-------------:|
+Hotmilk|no hotmilk (-1)|hotmilk (+1)|
+Read|no reading (-1)|reading (+1)|
+Bath|no hotbath (-1)|hotbath (+1)|
+
+The hour of deep sleep will be measured and recorded by an activity tracker wrist band. I collected the data each night from 2/11/2019 to 23/11/2019 picking dates at random.  
+Since the experiment is time sensetive; the experiment cannot go with the order from (-1,-1,-1) to (1,1,1) since in that case every treatment might be influenced by the previous night and the variables are not longer independent. Therefore I randomized the order of the treatment
+set.seed(100)
+sample(1:8,8,replace = FALSE)
+set.seed(102)
+sample(9:16,8,replace = FALSE)
+
+
+|Run|Subject|Hours|Hotmilk|Read|Bath|
+------|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+ 5 | 1 | 1.33 | +1 | +1 | +1 |
+ 1 | 2 | 0.83 | +1 | -1 | -1 |
+ 4 | 3 | 1.00 | +1 | -1 | +1 |
+ 8 | 4 | 0.92 | +1 | -1 | -1 |
+ 7 | 5 | 0.82 | -1 | +1 | 1 |
+ 3 | 6 | 0.67 | -1 | +1 | -1 |
+ 2 | 7 | 0.96 | -1 | -1 | +1 |
+ 6 | 8 | 1.00 | -1 | -1 | -1 |
+ 11 |9 | 1.17 | +1 | +1 | +1 |
+ 16 |10 | 1.08 | +1 | +1 | -1 |
+ 14 |11 | 1.25 | +1 | -1 | +1 |
+ 12 |12 | 0.88 | +1 | -1 | -1 |
+ 13 |13 | 0.92 | +1 | +1 | -1 |
+ 10 |14 | 0.78 | -1 | +1 | -1 |
+ 9 |15 | 0.83 | -1 | +1 | -1 |
+ 15 |16 | 0.75 | -1 | -1 | -1 |
+ 
+ 
+# Analysis
+
+```{r}
+deepsleephours<-read.csv('/Users/jennyyang/Downloads/deepsleep.csv',header=T)
+model<-lm(hours~hotmilk*reading*hotbath, data=deepsleephours)
+summary(model)
+```
+
+
+```{r echo=FALSE, include=TRUE}
+library("FrF2")
+cubePlot(model,"hotmilk","reading","hotbath",main = "cubeplot for deep sleep hours")
+```
+main effect for hotmilk, reading and hotbath, p-value for hotmilk and hotbath less than 0.05, p-value for reading greater than 0.05, not significant.)
+
+```{r echo=FALSE, include=TRUE}
+interaction.plot(deepsleephours$hotmilk,deepsleephours$reading,deepsleephours$hours, type="l", trace.label = "reading", xlab="hotmilk", ylab = "hours")
+interaction.plot(deepsleephours$reading,deepsleephours$hotbath,deepsleephours$hours, type="l", trace.label = "hotmilk", xlab="reading", ylab = "hours")
+interaction.plot(deepsleephours$hotmilk,deepsleephours$hotbath,deepsleephours$hours, type="l", trace.label = "hotbath", xlab="hotmilk", ylab = "hours")
+```
+interaction plot show intersction; however, p-val of the analysis are not significant for both two way and three way interaction.
+
+```{r echo=FALSE, include=TRUE}
+X<-model.matrix(model)
+X
+```
+
+A linear model for 2^3^ factorial design is 
+\(y_i = \beta_0+\beta_1*x_{i1}+\beta_2*x_{i2}+\beta_3*x_{i3}+\beta_4*x_{i1}*x_{i2}+\beta_5*x_{i1}*x_{i3}+\beta_6*x_{i2}*x_{i3}+\beta_7*x_{i1}*x_{i2}*x_{i3}+\epsilon
+\)	
+Main effects; two way and three way interaction are obtained by multiplying coeffecients by 2
+
+|Factors|factorial effect|
+------|:-------------:|:-------------:|
+hotmilk|0.21625                 
+reading|0.00125                
+hotbath|0.17125                  
+hotmilk:reading|0.08875          
+hotmilk:hotbath|0.08875          
+reading:hotbath|0.04875              
+hotmilk:reading:hotbath|-0.01375
+
+The effect of deepsleep hours increased 0.21625 when drink hot milk before go to bed; p-value smaller than 0.05, therefore significant, reject \(H_0\). reading increased 0.00125; however, p-value is very large, result not significant therefore cannot reject \(H_0\). factorial effect increased 0.17125 with taking a hot bath bath before bed, p-value smaller than 0.05, therefore reject \(H_0\). All the interaction between factors were not significant, therefore cannot reject \(H_0\) and no conclusion can be made on the two way and three way interactions.
+
+Standard error of all factorial effect is 0.03148*2=0.06296, variance is 0.06296^2^ = 0.00396
+
+95% Confidence Interval:
+```{r}
+round(2*confint.lm(model),2)
+```
+
+Confidence intervals do not contain zeros are: 
+hotmilk: [0.07,0.36]; hotbath: [0.03,0.32]; showing that drink hot milk and take hot bath independently might affect the deep sleep time. Factor reading and all other interactions between factors include zero in their 95% confidence interval; no significant result can be concluded with the effect of those factors on deep sleep hours.
+
+# Conclusions
+
+I conducted 2^3^factorial design experiment to explore the effect of drinking hot milk, reading and taking hot bath before going to bed on the quality of sleep by tracking the deep sleep hours with each observation. With the analysis, hot milk and hot bath have small p-value with positive effect on deep sleep hours. Although hot milk and hot bath effects are positive, they have relative small values and reading doesn't show significance for p-value very large. Interactions between factors show no significant effects as well, so only factor hotmilk and hotbath positive and independent from one another. This experiment shows that drink hot milk and take hot bath before bed might be a good idea to improve sleeping quality; however, the data size is very small considering the particularity of sleep studies since it might require longitudinal studies that track people to see if their sleeping quality gets better over time. 
